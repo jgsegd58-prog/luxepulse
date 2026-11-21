@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuxePulse - Premium 10-Min Delivery</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body class="dark-mode">
+
+    <!-- App Opening Splash Popup -->
+    <div id="appSplashScreen" class="splash-screen">
+        <div class="splash-card">
+            <div class="splash-badge">⚡ 10-MIN EXPRESS</div>
+            <h1 class="splash-logo">LuxePulse</h1>
+            <p class="splash-tagline">Smart Shopping • Instant Style</p>
+            <div class="splash-loader"><span></span></div>
+        </div>
+    </div>
+
+    <!-- Smooth Toast Notification -->
+    <div id="toastNotification" class="toast-notification hidden">✅ Added to Bag!</div>
+
+    <!-- Header Section -->
+    <header>
+        <div class="brand-logo" onclick="switchTab('home')" style="cursor: pointer;">
+            <h1>LuxePulse</h1>
+            <span class="tagline">⚡ 10-Min Express</span>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Search products..." onkeyup="searchProducts()">
+        </div>
+        
+        <div class="header-right">
+            <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeBtn">☀️ Light</button>
+        </div>
+    </header>
+
+    <!-- Live Pincode / Delivery Area Bar -->
+    <div class="pincode-bar">
+        <div class="pincode-left" id="pincodeStatusText">
+            📍 Delivering in <strong>10 mins</strong> to <strong>Jaipur - 302029</strong>
+        </div>
+        <button class="pincode-change-btn" onclick="togglePincodeInput()">Change</button>
+    </div>
+    <div id="pincodeInputBox" class="pincode-input-box hidden">
+        <input type="text" id="pincodeField" placeholder="Enter 6-digit Pincode (e.g. 302029)" maxlength="6">
+        <button onclick="checkPincode()">Check</button>
+    </div>
+
+    <!-- Floating WhatsApp Direct Chat Button -->
+    <a href="https://wa.me/916359442679?text=Hello%20LuxePulse,%20I%20need%20help%20with%20an%20order!" target="_blank" class="floating-whatsapp">
+        💬
+    </a>
+
+    <!-- Live Recent Order Notification Popup -->
+    <div id="liveOrderPopup" class="live-order-popup hidden">
+        <span class="popup-icon">🛍️</span>
+        <div>
+            <p id="popupText"><strong>Ramesh (Jaipur)</strong> just ordered a Watch!</p>
+            <span class="popup-time">Just now • 10-Min Delivery</span>
+        </div>
+    </div>
+
+    <!-- Main Store Catalog View -->
+    <main id="home-view" class="store-container">
+        
+        <!-- Flash Sale Banner -->
+        <div class="hero-banner first-order-banner">
+            <h2>🎉 First Order Special: Flat 60% OFF!</h2>
+            <p>Use Coupon code <strong>FIRST60</strong> at checkout. Grab your items before the deal ends!</p>
+            <div class="flash-timer-box">
+                🔥 Flash Offer Expires In: <span id="flashCountdown">02:00:00</span>
+            </div>
+        </div>
+        
+        <!-- Category Filter Tabs -->
+        <div class="category-tabs">
+            <button class="tab-btn active" onclick="filterCategory('all', this)">✨ All</button>
+            <button class="tab-btn" onclick="filterCategory('watch', this)">⌚ Watches</button>
+            <button class="tab-btn" onclick="filterCategory('dress', this)">👗 Dresses & Sets</button>
+            <button class="tab-btn" onclick="filterCategory('shoe', this)">👟 Shoes & Footwear</button>
+            <button class="tab-btn" onclick="filterCategory('bag', this)">🎒 Bags</button>
+            <button class="tab-btn" onclick="filterCategory('cap', this)">🧢 Caps</button>
+        </div>
+
+        <!-- Category Rows Container -->
+        <div id="category-rows-container">
+            <div class="category-row-section">
+                <div class="row-header">
+                    <h3>🔥 Trending Now & Best Sellers</h3>
+                </div>
+                <div class="horizontal-slider" id="row1-slider"></div>
+            </div>
+
+            <div class="category-row-section">
+                <div class="row-header">
+                    <h3>⚡ Flash Deals & New Arrivals</h3>
+                </div>
+                <div class="horizontal-slider" id="row2-slider"></div>
+            </div>
+
+            <div class="category-row-section">
+                <div class="row-header">
+                    <h3>🌟 Featured Collection & Style Picks</h3>
+                </div>
+                <div class="horizontal-slider" id="row3-slider"></div>
+            </div>
+        </div>
+
+        <!-- Filtered / Search Results Grid -->
+        <div id="search-results-section" class="hidden">
+            <div class="row-header">
+                <h3 id="result-title">🔍 Results</h3>
+            </div>
+            <div class="product-grid" id="search-product-grid"></div>
+        </div>
+    </main>
+
+    <!-- Wishlist View -->
+    <main id="wishlist-view" class="store-container hidden">
+        <div class="row-header">
+            <h3>❤️ My Saved Wishlist</h3>
+        </div>
+        <div class="product-grid" id="wishlist-grid"></div>
+    </main>
+
+    <!-- My Orders View -->
+    <main id="orders-view" class="store-container hidden">
+        <div class="row-header">
+            <h3>📦 My Active Orders</h3>
+        </div>
+        <div id="orders-list-container"></div>
+
+        <!-- AI Cancellation Assistant Auto-Reply Box -->
+        <div id="aiCancelBotBox" class="ai-bot-box hidden">
+            <div class="ai-bot-header">
+                <span>🤖 LuxePulse AI Cancel Assistant</span>
+                <button type="button" class="ai-bot-close" onclick="closeAiBotBox()">✕</button>
+            </div>
+            <p class="ai-bot-meta" id="aiBotMeta"></p>
+            <p class="ai-bot-reply" id="aiBotReply"></p>
+            <a id="aiBotWhatsappLink" href="#" target="_blank" class="ai-wa-btn">💬 Send Cancellation Details to Support</a>
+        </div>
+    </main>
+
+    <!-- Product Detail & Slider View -->
+    <main id="detail-view" class="store-container hidden">
+        <button class="back-btn" onclick="goBackToHome()">← Back to Catalog</button>
+        
+        <div class="detail-container">
+            <div class="gallery-section">
+                <div class="slider-wrapper" id="sliderWrapper">
+                    <button class="slider-arrow prev-btn" onclick="prevSlide()">❮</button>
+                    <img id="main-detail-img" src="" alt="Product Image" onclick="openZoomModal()">
+                    <button class="slider-arrow next-btn" onclick="nextSlide()">❯</button>
+                </div>
+                <p class="zoom-hint">🔍 Tap photo to open Full-Screen HD Zoom</p>
+                
+                <div class="thumbnail-row" id="thumbnail-row"></div>
+            </div>
+
+            <div class="info-section">
+                <div class="detail-top-row">
+                    <h2 id="detail-title">Product Name</h2>
+                    <button class="detail-wish-btn" id="detailWishBtn" onclick="toggleDetailWishlist()">🤍</button>
+                </div>
+                <div class="delivery-badge">⚡ Lightning Fast Delivery in 10 Minutes</div>
+                
+                <div class="price-box" id="display-price">₹0</div>
+
+                <!-- Size Selector Box -->
+                <div class="size-selector-box">
+                    <p class="size-label">Select Size: <strong id="selectedSizeText">-</strong></p>
+                    <div class="size-options" id="sizeOptionsContainer"></div>
+                </div>
+
+                <p class="stock-urgency">🔥 Only 3 items left in stock! Selling fast.</p>
+                <p class="desc">Premium build quality, comfortable fit, and trendsetting style.</p>
+
+                <div class="trust-features">
+                    <span>🛡️ 2 Months Warranty</span>
+                    <span>🔄 7-Day Easy Return</span>
+                    <span>⚡ 10-Min Dispatch</span>
+                </div>
+
+                <button class="add-to-cart-btn" onclick="addToCartDetail()">Add to Bag</button>
+                <button class="buy-now-btn" onclick="openCheckoutFromDetail()">⚡ Instant Express Checkout</button>
+
+                <!-- Verified Customer Reviews Section -->
+                <div class="reviews-section">
+                    <h3>⭐ Verified Buyer Reviews (4.8/5)</h3>
+                    <div class="rating-bars">
+                        <div class="r-bar"><span>5★</span><div class="bar-track"><div style="width: 82%"></div></div><span>82%</span></div>
+                        <div class="r-bar"><span>4★</span><div class="bar-track"><div style="width: 14%"></div></div><span>14%</span></div>
+                        <div class="r-bar"><span>3★</span><div class="bar-track"><div style="width: 4%"></div></div><span>4%</span></div>
+                    </div>
+                    <div class="review-card">
+                        <div class="rev-head"><strong>Rahul Sharma • Jaipur</strong> <span>⭐⭐⭐⭐⭐</span></div>
+                        <p>"Ekdam mast quality hai bhai, aur sach mein 9 minute mein delivery mil gayi!"</p>
+                    </div>
+                    <div class="review-card">
+                        <div class="rev-head"><strong>Sneha Verma • Sanganer</strong> <span>⭐⭐⭐⭐⭐</span></div>
+                        <p>"Fitting aur finishing bilkul original showroom jaisi hai. Full paisa vasool!"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom App Navigation Bar -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" id="nav-home" onclick="switchTab('home')">
+            <span class="nav-icon">🏠</span>
+            <span>Home</span>
+        </button>
+        <button class="nav-item" id="nav-wishlist" onclick="switchTab('wishlist')">
+            <span class="nav-icon">❤️</span>
+            <span>Wishlist <b id="wish-count">0</b></span>
+        </button>
+        <button class="nav-item" id="nav-bag" onclick="openCartDrawer()">
+            <span class="nav-icon">🛍️</span>
+            <span>Bag <b id="cart-count">0</b></span>
+        </button>
+        <button class="nav-item" id="nav-orders" onclick="switchTab('orders')">
+            <span class="nav-icon">📦</span>
+            <span>My Orders</span>
+        </button>
+    </nav>
+
+    <!-- Cancel Order Reason Modal -->
+    <div id="cancelOrderModal" class="checkout-modal hidden">
+        <div class="checkout-content">
+            <span class="close-modal" onclick="closeCancelModal()">&times;</span>
+            <h2>❌ Cancel & Remove Order</h2>
+            <p class="cancel-sub" id="cancelOrderInfo">Order ID: #LP000000</p>
+
+            <p class="cancel-label">Select cancellation reason for instant AI response:</p>
+            <div class="cancel-reasons-list" id="cancelReasonsList">
+                <label class="reason-item"><input type="radio" name="cancelReason" value="Ordered by mistake" checked> Ordered by mistake</label>
+                <label class="reason-item"><input type="radio" name="cancelReason" value="Delivery taking too long"> Delivery taking too long</label>
+                <label class="reason-item"><input type="radio" name="cancelReason" value="Want to change size or product"> Want to change size or product</label>
+                <label class="reason-item"><input type="radio" name="cancelReason" value="Payment or offer issue"> Payment or offer issue</label>
+                <label class="reason-item"><input type="radio" name="cancelReason" value="Other reason"> Other reason</label>
+            </div>
+
+            <textarea id="cancelExtraNote" placeholder="Optional note or question for AI & support..." rows="2" class="cancel-note-box"></textarea>
+
+            <button class="cancel-confirm-btn" onclick="confirmCancelOrder()">❌ Cancel & Remove Order</button>
+            <button class="whatsapp-pay-btn" onclick="sendCancelWhatsApp()">💬 Cancel, Remove & Notify on WhatsApp</button>
+        </div>
+    </div>
+
+    <!-- Cart Drawer -->
+    <div id="cartDrawer" class="checkout-modal hidden">
+        <div class="checkout-content cart-drawer-content">
+            <span class="close-modal" onclick="closeCartDrawer()">&times;</span>
+            <h2>🛍️ Your Shopping Bag</h2>
+            
+            <div class="free-delivery-banner">
+                <p id="freeDeliveryText">🚚 Add ₹500 more for FREE 10-Min Delivery!</p>
+                <div class="progress-bar-container">
+                    <div id="deliveryProgressBar" class="progress-bar-fill"></div>
+                </div>
+            </div>
+
+            <div id="cart-items-container" class="cart-items-list"></div>
+
+            <div class="cart-summary">
+                <div class="cart-total-row">
+                    <span>Total Amount:</span>
+                    <span id="cartTotalDisplay">₹0</span>
+                </div>
+                <button class="buy-now-btn" onclick="proceedFromCart()">Proceed to Checkout ➔</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="checkout-modal hidden">
+        <div class="checkout-content">
+            <span class="close-modal" onclick="closeCheckout()">&times;</span>
+            <h2>🔒 Secure Express Checkout</h2>
+            
+            <div class="timer-box">
+                ⏱️ Special Lightning Offer Expires in: <span id="countdown">05:00</span>
+            </div>
+
+            <div class="address-section">
+                <h3>📍 Delivery Address & Live GPS</h3>
+                <p id="addressErrorMsg" class="address-error-msg hidden"></p>
+                <input type="text" id="custName" placeholder="Full Name" oninput="clearAddressError()">
+                <input type="tel" id="custPhone" placeholder="Mobile Number" oninput="clearAddressError()">
+                <textarea id="custAddress" placeholder="Complete Address (House No, Street, Landmark)" rows="2" oninput="clearAddressError()"></textarea>
+                
+                <button type="button" class="gps-btn" onclick="detectLocation()">📍 Detect My Live GPS Location</button>
+                <div class="quick-area-row">
+                    <button type="button" class="quick-area-btn" onclick="fillQuickArea('Malpura Gate, Sanganer, Jaipur - 302029')">Malpura Gate, Jaipur</button>
+                    <button type="button" class="quick-area-btn" onclick="fillQuickArea('Diggi Road, Sanganer, Jaipur - 302029')">Diggi Road, Jaipur</button>
+                    <button type="button" class="quick-area-btn" onclick="fillQuickArea('Begur, Bengaluru, Karnataka')">Begur, Bengaluru</button>
+                </div>
+                <input type="hidden" id="gpsLink" value="">
+            </div>
+
+            <div class="promo-section">
+                <h3>🏷️ Apply Promo Code</h3>
+                <div class="promo-row">
+                    <input type="text" id="promoInput" placeholder="Try FIRST60 for 60% OFF">
+                    <button type="button" class="apply-promo-btn" onclick="applyPromoCode()">Apply</button>
+                </div>
+                <p id="promoMsg" class="promo-msg"></p>
+            </div>
+
+            <!-- Smart Price Breakup Box -->
+            <div class="bill-breakup-box">
+                <div class="bill-row"><span>Item Total:</span><span id="billSubtotal">₹0</span></div>
+                <div class="bill-row discount-text"><span>Promo Discount:</span><span id="billDiscount">-₹0</span></div>
+                <div class="bill-row"><span>10-Min Express Delivery:</span><span id="billDelivery">FREE</span></div>
+                <div class="bill-row total-row"><span>Final Payable:</span><strong id="finalPayableAmount">₹0</strong></div>
+                <div class="savings-pill" id="billSavingsText">🎉 You are saving ₹0 on this order!</div>
+            </div>
+
+            <div class="payment-section">
+                <h3>Select Payment Method</h3>
+                
+                <label class="pay-option">
+                    <input type="radio" name="pay" value="upi" checked onclick="selectPay('upi')"> 
+                    <span>📱 PhonePe / Google Pay / BHIM UPI</span>
+                </label>
+
+                <label class="pay-option">
+                    <input type="radio" name="pay" value="cod" onclick="selectPay('cod')"> 
+                    <span>💵 Cash on Delivery (Pay at Doorstep)</span>
+                </label>
+                <div id="cod-box" class="sub-pay-box hidden">
+                    <p class="qr-text" style="color: #4ade80;">✅ Pay cash or scan QR when rider arrives in 10 mins!</p>
+                </div>
+                
+                <label class="pay-option">
+                    <input type="radio" name="pay" value="qr" onclick="selectPay('qr')"> 
+                    <span>📷 Scan QR Code (Original & Zoomable)</span>
+                </label>
+                <div id="qr-box" class="sub-pay-box hidden">
+                    <p class="qr-text">Tap QR Code to Zoom Original View:</p>
+                    <img src="8.0.jpg" alt="QR Code" class="qr-img-large" onclick="openZoomQR()">
+                </div>
+
+                <label class="pay-option">
+                    <input type="radio" name="pay" value="card" onclick="selectPay('card')"> 
+                    <span>💳 Credit / Debit Card (Secure CVV)</span>
+                </label>
+                <div id="card-box" class="sub-pay-box hidden">
+                    <input type="text" placeholder="Card Number (16 digits)" maxlength="16">
+                    <div class="card-row">
+                        <input type="text" placeholder="MM/YY" maxlength="5">
+                        <input type="password" placeholder="CVV" maxlength="3">
+                    </div>
+                </div>
+
+                <label class="pay-option">
+                    <input type="radio" name="pay" value="bank" onclick="selectPay('bank')"> 
+                    <span>🏦 Net Banking (95+ Indian Banks with Search)</span>
+                </label>
+                <div id="bank-box" class="sub-pay-box hidden">
+                    <input type="text" id="bankSearch" placeholder="🔍 Search from 95+ banks..." onkeyup="filterBanks()">
+                    
+                    <div class="bank-list-container" id="bankList">
+                        <label class="bank-item"><input type="radio" name="bank" checked> State Bank of India (SBI)</label>
+                        <label class="bank-item"><input type="radio" name="bank"> HDFC Bank</label>
+                        <label class="bank-item"><input type="radio" name="bank"> ICICI Bank</label>
+                        <label class="bank-item"><input type="radio" name="bank"> Axis Bank</label>
+                        <label class="bank-item"><input type="radio" name="bank"> Kotak Mahindra Bank</label>
+                    </div>
+                </div>
+            </div>
+
+            <button class="pay-now-upi-btn" id="primaryOrderBtn" onclick="handlePrimaryOrder()">⚡ Pay Now via PhonePe / GPay (6359442679)</button>
+            <button class="whatsapp-pay-btn" onclick="proceedToWhatsApp()">💬 Confirm & Order on WhatsApp (6359442679)</button>
+        </div>
+    </div>
+
+    <!-- Tracking Modal -->
+    <div id="trackingModal" class="checkout-modal hidden">
+        <div class="checkout-content text-center">
+            <h2>⚡ Live Order Tracking</h2>
+            <p class="tracking-subtitle">10-Minute Express Delivery in Progress</p>
+            
+            <div class="delivery-status-timeline">
+                <div class="status-step active" id="step1">
+                    <span class="icon">📦</span>
+                    <div>
+                        <h4>Order Confirmed</h4>
+                        <p>Order received & verified</p>
+                    </div>
+                </div>
+                <div class="status-step" id="step2">
+                    <span class="icon">🛵</span>
+                    <div>
+                        <h4>Assigned to Ramesh</h4>
+                        <p>Partner is packing your item</p>
+                    </div>
+                </div>
+                <div class="status-step" id="step3">
+                    <span class="icon">⚡</span>
+                    <div>
+                        <h4>Out for Delivery</h4>
+                        <p>Arriving at your location in 10 mins</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="delivery-boy-card">
+                <p>🛵 <strong>Delivery Partner:</strong> Ramesh</p>
+                <p>📞 <strong>Contact:</strong> +91 98765 43210</p>
+            </div>
+
+            <div class="timer-box">
+                📦 Estimated Arrival: <span id="deliveryCountdown">10:00</span> minutes
+            </div>
+
+            <button class="whatsapp-pay-btn" onclick="closeTrackingAndViewOrders()">View in My Orders</button>
+        </div>
+    </div>
+
+    <!-- Zoom Modal -->
+    <div id="zoomModal" class="zoom-modal hidden" onclick="closeZoomModal(event)">
+        <span class="close-modal" onclick="closeZoomModal()">&times;</span>
+        <img class="zoom-modal-content" id="zoomedImg" alt="Zoomed Product">
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
