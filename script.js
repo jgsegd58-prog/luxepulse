@@ -6,7 +6,7 @@ const products = [
     { id: 4, name: "Panmila Cute Koala Blue Casual Watch", img: "w5.jpg", price: 149, originalPrice: 298, discount: "50% OFF", rating: "3.9 ★", category: "watch", sizes: ["Free Size"] },
     { id: 5, name: "Rose Petal Chic Mauve Round Dial Watch", img: "w6.jpg", price: 199, originalPrice: 442, discount: "55% OFF", rating: "4.7 ★", category: "watch", sizes: ["Free Size"] },
     { id: 6, name: "Leona Rosa Modern White & Black Buckle Watch", img: "w7.jpg", price: 199, originalPrice: 568, discount: "65% OFF", rating: "4.4 ★", category: "watch", sizes: ["Free Size"] },
-    
+
     { id: 7, name: "Floral Embroidered Striped Shirt & Dark Denim Combo", img: "d1.jpg", price: 399, originalPrice: 998, discount: "60% OFF", rating: "4.8 ★", category: "dress", sizes: ["S", "M", "L", "XL", "XXL"] },
     { id: 8, name: "Minimalist Black Oversized Tee & Light Blue Wide-Leg Jeans", img: "d2.jpg", price: 299, originalPrice: 543, discount: "45% OFF", rating: "4.5 ★", category: "dress", sizes: ["S", "M", "L", "XL", "XXL"] },
     { id: 9, name: "Celestial Moon Graphic Tee & Dark Blue Denim Set", img: "d3.jpg", price: 349, originalPrice: 775, discount: "55% OFF", rating: "4.9 ★", category: "dress", sizes: ["S", "M", "L", "XL", "XXL"] },
@@ -358,7 +358,7 @@ function startLiveOrderPopupLoop() {
 
         let randomBuyer = buyers[Math.floor(Math.random() * buyers.length)];
         textElem.innerHTML = `<strong>${randomBuyer.name}</strong> just ordered a ${randomBuyer.item}!`;
-        
+
         popup.classList.remove('hidden');
         setTimeout(() => {
             popup.classList.add('hidden');
@@ -448,7 +448,7 @@ function searchProducts() {
     let inputElem = document.getElementById('searchInput');
     if (!inputElem) return;
     let query = inputElem.value.toLowerCase();
-    
+
     const rowsContainer = document.getElementById('category-rows-container');
     const searchSection = document.getElementById('search-results-section');
     const searchGrid = document.getElementById('search-product-grid');
@@ -504,7 +504,7 @@ function createCardHTML(p) {
 function toggleTheme() {
     const body = document.body;
     const btn = document.getElementById('themeBtn');
-    
+
     if (body.classList.contains('dark-mode')) {
         body.classList.remove('dark-mode');
         body.classList.add('light-mode');
@@ -526,7 +526,7 @@ function openDetail(id) {
     document.getElementById('wishlist-view').classList.add('hidden');
     document.getElementById('orders-view').classList.add('hidden');
     document.getElementById('detail-view').classList.remove('hidden');
-    
+
     loadThumbnails();
     updateView();
 }
@@ -559,7 +559,7 @@ function renderSizeOptions(prod) {
 function loadThumbnails() {
     const thumbRow = document.getElementById('thumbnail-row');
     if (!thumbRow) return;
-    
+
     thumbRow.innerHTML = "";
     activeCategoryList.forEach((p, idx) => {
         thumbRow.innerHTML += `
@@ -576,12 +576,12 @@ function updateView() {
         mainImg.src = current.img;
         mainImg.onerror = function() { this.src = 'w1.jpg'; };
     }
-    
+
     document.getElementById('detail-title').innerText = current.name;
     document.getElementById('display-price').innerText = "₹" + current.price;
     renderSizeOptions(current);
     updateDetailWishIcon();
-    
+
     document.querySelectorAll('.thumbnail-row img').forEach((img, idx) => {
         if (idx === currentIndex) {
             img.classList.add('active');
