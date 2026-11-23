@@ -35,6 +35,9 @@ const products = [
     { id: 29, name: "Black Nike Pro Swoosh Flat Brim Cap", img: "c6.jpg", price: 249, originalPrice: 498, discount: "50% OFF", rating: "4.9 ★", category: "cap", sizes: ["Free Size"] }
 ];
 
+const UPI_ID = "6359442679@paytm";
+const MERCHANT_NAME = "LuxePulse";
+
 let activeCategoryList = products;
 let currentIndex = 0;
 let selectedSize = "Free Size";
@@ -46,6 +49,7 @@ let discountPercentage = 60;
 let selectedPayMethod = "upi";
 let timerInterval;
 let flashTimerInterval;
+let deliveryInterval;
 let toastTimeout;
 
 let zoomScale = 1;
@@ -326,7 +330,7 @@ function renderOrdersView() {
                 <p style="margin-bottom: 4px; color: #94a3b8; font-size: 0.7rem;">📍 ${ord.address}</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 0.72rem;">
                     <span>Amount: <strong style="color:#4ade80;">₹${ord.total}</strong> (${ord.method})</span>
-                    <button onclick="openCancelModal('${ord.id}')" style="background:#ef4444;color:#fff;border:none;padding:5px 10px;border-radius:6px;font-size:0.68rem;font-weight:600;cursor:pointer;">Cancel Order</button>
+                    <button type="button" onclick="openCancelModal('${ord.id}')" style="background:#ef4444;color:#fff;border:none;padding:5px 10px;border-radius:6px;font-size:0.68rem;font-weight:600;cursor:pointer;">Cancel Order</button>
                 </div>
             </div>
         `;
@@ -479,10 +483,10 @@ function createCardHTML(p) {
     return `
         <div class="product-card">
             <span class="badge-60">${p.discount}</span>
-            <button class="wish-card-btn" onclick="toggleWishlist(${p.id}, event)">${isWished ? '❤️' : '🤍'}</button>
+            <button type="button" class="wish-card-btn" onclick="toggleWishlist(${p.id}, event)">${isWished ? '❤️' : '🤍'}</button>
             <div class="card-rating">${p.rating}</div>
             <div class="card-img-wrap" onclick="openDetail(${p.id})">
-                <img src="${p.img}" alt="${p.name}" onerror="this.src='w1.jpg'">
+                <img src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.src='w1.jpg'">
             </div>
             <h3 title="${p.name}" onclick="openDetail(${p.id})" style="cursor:pointer;">${p.name}</h3>
             <div class="price-row-card">
@@ -490,8 +494,8 @@ function createCardHTML(p) {
                 <span class="slashed-price">₹${p.originalPrice}</span>
             </div>
             <div class="card-btn-row">
-                <button class="card-add-btn" onclick="addToCart(${p.id})">Bag</button>
-                <button class="card-buy-btn" onclick="buyNowDirect(${p.id})">⚡ Buy</button>
+                <button type="button" class="card-add-btn" onclick="addToCart(${p.id})">Bag</button>
+                <button type="button" class="card-buy-btn" onclick="buyNowDirect(${p.id})">⚡ Buy</button>
             </div>
         </div>
     `;
@@ -675,9 +679,9 @@ function renderCartDrawerItems() {
                     </div>
                 </div>
                 <div class="cart-controls">
-                    <button onclick="changeQty(${index}, -1)">-</button>
+                    <button type="button" onclick="changeQty(${index}, -1)">-</button>
                     <span>${item.qty}</span>
-                    <button onclick="changeQty(${index}, 1)">+</button>
+                    <button type="button" onclick="changeQty(${index}, 1)">+</button>
                 </div>
             </div>
         `;
@@ -742,7 +746,8 @@ function proceedFromCart() {
 function openCheckoutModal() {
     clearAddressError();
     document.getElementById('checkoutModal').classList.remove('hidden');
-    calculateFinalBill();
+    const finalAmt = calculateFinalBill();
+    updateUpiLinkHref(finalAmt);
     startTimer(300);
 }
 
@@ -761,7 +766,15 @@ function calculateFinalBill() {
     document.getElementById('billDiscount').innerText = "-₹" + discountVal;
     document.getElementById('finalPayableAmount').innerText = "₹" + final;
     document.getElementById('billSavingsText').innerText = `🎉 You are saving ₹${discountVal} on this order!`;
+    updateUpiLinkHref(final);
     return final;
+}
+
+function updateUpiLinkHref(amount) {
+    const upiAnchor = document.getElementById('directUpiAppLink');
+    if (!upiAnchor) return;
+    const cleanAmt = Math.max(1, Number(amount) || 1);
+    upiAnchor.href = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${encodeURIComponent(cleanAmt.toFixed(2))}&cu=INR`;
 }
 
 function applyPromoCode() {
@@ -809,27 +822,41 @@ function startTimer(duration) {
 
 function selectPay(method) {
     selectedPayMethod = method;
-    document.getElementById('cod-box').classList.add('hidden');
-    document.getElementById('qr-box').classList.add('hidden');
-    document.getElementById('card-box').classList.add('hidden');
-    document.getElementById('bank-box').classList.add('hidden');
+    document.getElementById('upi-box')?.classList.add('hidden');
+    document.getElementById('cod-box')?.classList.add('hidden');
+    document.getElementById('qr-box')?.classList.add('hidden');
+    document.getElementById('card-box')?.classList.add('hidden');
+    document.getElementById('bank-box')?.classList.add('hidden');
 
     const primaryBtn = document.getElementById('primaryOrderBtn');
 
     if (method === 'cod') {
-        document.getElementById('cod-box').classList.remove('hidden');
+        document.getElementById('cod-box')?.classList.remove('hidden');
         if (primaryBtn) primaryBtn.innerText = "💵 Place Cash on Delivery Order";
     } else if (method === 'qr') {
-        document.getElementById('qr-box').classList.remove('hidden');
+        document.getElementById('qr-box')?.classList.remove('hidden');
         if (primaryBtn) primaryBtn.innerText = "✅ Confirm QR Payment & Track";
     } else if (method === 'card') {
-        document.getElementById('card-box').classList.remove('hidden');
+        document.getElementById('card-box')?.classList.remove('hidden');
         if (primaryBtn) primaryBtn.innerText = "💳 Pay Securely via Card";
     } else if (method === 'bank') {
-        document.getElementById('bank-box').classList.remove('hidden');
+        document.getElementById('bank-box')?.classList.remove('hidden');
         if (primaryBtn) primaryBtn.innerText = "🏦 Proceed to Net Banking";
     } else {
-        if (primaryBtn) primaryBtn.innerText = "⚡ Pay Now via PhonePe / GPay (6359442679)";
+        document.getElementById('upi-box')?.classList.remove('hidden');
+        if (primaryBtn) primaryBtn.innerText = "✅ Confirm UPI Order & Track";
+    }
+}
+
+function copyUpiId() {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(UPI_ID).then(() => {
+            showToast(`📋 Copied UPI ID: ${UPI_ID}`);
+        }).catch(() => {
+            showToast(`ℹ️ UPI ID: ${UPI_ID}`);
+        });
+    } else {
+        showToast(`ℹ️ UPI ID: ${UPI_ID}`);
     }
 }
 
@@ -965,12 +992,17 @@ function handlePrimaryOrder() {
     triggerConfetti();
     const total = calculateFinalBill();
     const address = document.getElementById('custAddress').value.trim();
-    saveOrderToHistory(cart, total, selectedPayMethod, address);
+
+    let modeLabel = selectedPayMethod.toUpperCase();
+    if (selectedPayMethod === 'bank') {
+        const chosenBank = document.querySelector('input[name="bank"]:checked')?.value || 'Bank';
+        modeLabel = `NETBANKING-${chosenBank}`;
+    }
+
+    saveOrderToHistory(cart, total, modeLabel, address);
 
     if (selectedPayMethod === 'upi') {
-        let itemsSummary = cart.map(i => `${i.qty}x ${i.product.name} [${i.size}]`).join(', ');
-        const upiUrl = `upi://pay?pa=6359442679@paytm&pn=LuxePulse&am=${total}&cu=INR&tn=Order_${encodeURIComponent(itemsSummary)}`;
-        window.location.href = upiUrl;
+        showToast(`✅ UPI Order placed for ₹${total}! Pay to ${UPI_ID} or use WhatsApp.`);
     }
 
     setTimeout(() => {
@@ -979,7 +1011,7 @@ function handlePrimaryOrder() {
         startDeliveryTimer();
         cart = [];
         updateCartCount();
-    }, 800);
+    }, 500);
 }
 
 function proceedToWhatsApp() {
@@ -989,18 +1021,27 @@ function proceedToWhatsApp() {
     const phone = document.getElementById('custPhone').value;
     const address = document.getElementById('custAddress').value;
     const total = calculateFinalBill();
-    saveOrderToHistory(cart, total, "WhatsApp-" + selectedPayMethod, address);
+    let modeLabel = selectedPayMethod.toUpperCase();
+    if (selectedPayMethod === 'bank') {
+        const chosenBank = document.querySelector('input[name="bank"]:checked')?.value || 'Bank';
+        modeLabel = `NETBANKING-${chosenBank}`;
+    }
+    saveOrderToHistory(cart, total, "WhatsApp-" + modeLabel, address);
 
     let itemsSummary = cart.map(i => `• ${i.qty}x ${i.product.name} (Size: ${i.size}) (₹${i.product.price * i.qty})`).join('%0A');
 
-    const message = `⚡ *LuxePulse 10-Min Express Order*%0A%0A*Items:*%0A${itemsSummary}%0A*Payment Mode:* ${selectedPayMethod.toUpperCase()}%0A*Final Payable:* ₹${total}%0A%0A👤 *Customer:* ${name}%0A📞 *Phone:* ${phone}%0A📍 *Address & GPS:* ${address}`;
+    const message = `⚡ *LuxePulse 10-Min Express Order*%0A%0A*Items:*%0A${itemsSummary}%0A*Payment Mode:* ${modeLabel}%0A*Final Payable:* ₹${total}%0A%0A👤 *Customer:* ${name}%0A📞 *Phone:* ${phone}%0A📍 *Address & GPS:* ${address}`;
     const whatsappUrl = `https://wa.me/916359442679?text=${message}`;
     window.location.href = whatsappUrl;
 }
 
 function startDeliveryTimer() {
+    clearInterval(deliveryInterval);
+    document.getElementById('step2')?.classList.remove('active');
+    document.getElementById('step3')?.classList.remove('active');
+
     let seconds = 600;
-    let deliveryInterval = setInterval(() => {
+    deliveryInterval = setInterval(() => {
         let m = Math.floor(seconds / 60);
         let s = seconds % 60;
         m = m < 10 ? "0" + m : m;
@@ -1008,8 +1049,8 @@ function startDeliveryTimer() {
         const elem = document.getElementById('deliveryCountdown');
         if (elem) elem.textContent = m + ":" + s;
 
-        if (seconds <= 570) document.getElementById('step2').classList.add('active');
-        if (seconds <= 540) document.getElementById('step3').classList.add('active');
+        if (seconds <= 570) document.getElementById('step2')?.classList.add('active');
+        if (seconds <= 540) document.getElementById('step3')?.classList.add('active');
 
         if (seconds > 0) {
             seconds--;
@@ -1112,6 +1153,7 @@ function openZoomModal() {
 }
 
 function closeZoomModal(event) {
+    if (event) event.stopPropagation();
     if (!event || event.target.id === 'zoomModal' || event.target.classList.contains('close-modal')) {
         const modal = document.getElementById('zoomModal');
         if (modal) {
