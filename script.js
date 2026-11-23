@@ -68,6 +68,21 @@ function showToast(msg) {
     }, 2600);
 }
 
+function buildWhatsAppWebUrl(textEncoded) {
+    return `https://api.whatsapp.com/send?phone=916359442679&text=${textEncoded}`;
+}
+
+function launchExternalUrl(url, fallbackMsg) {
+    try {
+        const opened = window.open(url, '_blank', 'noopener,noreferrer');
+        if (!opened) {
+            window.location.assign(url);
+        }
+    } catch (e) {
+        if (fallbackMsg) showToast(fallbackMsg);
+    }
+}
+
 function showAddressError(msg) {
     const errBox = document.getElementById('addressErrorMsg');
     const addrBox = document.getElementById('custAddress');
@@ -125,12 +140,12 @@ function checkPincode() {
     if (!field || !status) return;
     const pin = field.value.trim();
     if (!/^[1-9][0-9]{5}$/.test(pin)) {
-        showToast("⚠️ Please enter a valid 6-digit Pincode.");
+        showToast("Please enter a valid 6-digit Pincode.");
         return;
     }
-    status.innerHTML = `📍 Delivering in <strong>10 mins</strong> to <strong>Pincode - ${pin}</strong>`;
+    status.innerHTML = `Delivering in <strong>10 mins</strong> to <strong>Pincode - ${pin}</strong>`;
     if (box) box.classList.add('hidden');
-    showToast(`✅ Express 10-Min Delivery available for ${pin}!`);
+    showToast(`Express 10-Min Delivery available for ${pin}!`);
 }
 
 function switchTab(tab) {
@@ -160,10 +175,10 @@ function toggleWishlist(productId, event) {
     const idx = wishlist.indexOf(productId);
     if (idx === -1) {
         wishlist.push(productId);
-        showToast("❤️ Saved to Wishlist!");
+        showToast("Saved to Wishlist!");
     } else {
         wishlist.splice(idx, 1);
-        showToast("💔 Removed from Wishlist");
+        showToast("Removed from Wishlist");
     }
     localStorage.setItem('luxepulse_wishlist', JSON.stringify(wishlist));
     updateWishlistCount();
@@ -281,20 +296,26 @@ function removeOrderAndShowAiReply(openWhatsappAfter) {
     const waLink = document.getElementById('aiBotWhatsappLink');
 
     const fullReasonSummary = extraNote ? `${reasonVal} (${extraNote})` : reasonVal;
-    const waMessage = `❌ *LuxePulse Order Cancelled & Removed*%0A%0A*Order ID:* #${removedOrder.id}%0A*Items:* ${encodeURIComponent(removedOrder.items)}%0A*Amount:* ₹${removedOrder.total}%0A*Reason:* ${encodeURIComponent(fullReasonSummary)}%0A*AI Response:* ${encodeURIComponent(aiReplyText)}`;
-    const waUrl = `https://wa.me/916359442679?text=${waMessage}`;
+    const waMessage = `LuxePulse Order Cancelled and Removed%0A%0AOrder ID: #${removedOrder.id}%0AItems: ${encodeURIComponent(removedOrder.items)}%0AAmount: Rs ${removedOrder.total}%0AReason: ${encodeURIComponent(fullReasonSummary)}%0AAI Response: ${encodeURIComponent(aiReplyText)}`;
+    const waUrl = buildWhatsAppWebUrl(waMessage);
 
     if (botMeta) botMeta.innerText = `Removed Order #${removedOrder.id} • Reason: ${reasonVal}`;
     if (botReply) botReply.innerText = aiReplyText;
-    if (waLink) waLink.href = waUrl;
+    if (waLink) {
+        waLink.href = waUrl;
+        waLink.onclick = function(e) {
+            e.preventDefault();
+            launchExternalUrl(waUrl, "Opening WhatsApp...");
+        };
+    }
     if (botBox) botBox.classList.remove('hidden');
 
     closeCancelModal();
     renderOrdersView();
-    showToast(`🗑️ Order #${removedOrder.id} cancelled & removed.`);
+    showToast(`Order #${removedOrder.id} cancelled & removed.`);
 
     if (openWhatsappAfter) {
-        window.location.href = waUrl;
+        launchExternalUrl(waUrl, "Opening WhatsApp...");
     }
 }
 
@@ -628,7 +649,7 @@ function addToCart(productId, sizeOverride) {
         cart.push({ product: prod, size: chosenSize, qty: 1 });
     }
     updateCartCount();
-    showToast(`✅ Added (${chosenSize}) to Bag!`);
+    showToast(`Added (${chosenSize}) to Bag!`);
 }
 
 function addToCartDetail() {
@@ -698,12 +719,12 @@ function updateFreeDeliveryBar(total) {
     if (!textElem || !fillElem) return;
 
     if (total >= target) {
-        textElem.innerHTML = "🎉 Yay! You unlocked FREE 10-Min Delivery!";
+        textElem.innerHTML = "Yay! You unlocked FREE 10-Min Delivery!";
         fillElem.style.width = "100%";
     } else {
         let diff = target - total;
         let percent = (total / target) * 100;
-        textElem.innerHTML = `🚚 Add ₹${diff} more for FREE 10-Min Delivery!`;
+        textElem.innerHTML = `Add ₹${diff} more for FREE 10-Min Delivery!`;
         fillElem.style.width = percent + "%";
     }
 }
@@ -736,7 +757,7 @@ function openCheckoutFromDetail() {
 
 function proceedFromCart() {
     if (cart.length === 0) {
-        showToast("⚠️ Your bag is empty!");
+        showToast("Your bag is empty!");
         return;
     }
     closeCartDrawer();
@@ -765,7 +786,7 @@ function calculateFinalBill() {
     document.getElementById('billSubtotal').innerText = "₹" + subtotal;
     document.getElementById('billDiscount').innerText = "-₹" + discountVal;
     document.getElementById('finalPayableAmount').innerText = "₹" + final;
-    document.getElementById('billSavingsText').innerText = `🎉 You are saving ₹${discountVal} on this order!`;
+    document.getElementById('billSavingsText').innerText = `You are saving ₹${discountVal} on this order!`;
     updateUpiLinkHref(final);
     return final;
 }
@@ -774,7 +795,13 @@ function updateUpiLinkHref(amount) {
     const upiAnchor = document.getElementById('directUpiAppLink');
     if (!upiAnchor) return;
     const cleanAmt = Math.max(1, Number(amount) || 1);
-    upiAnchor.href = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${encodeURIComponent(cleanAmt.toFixed(2))}&cu=INR`;
+    const upiUrl = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${encodeURIComponent(cleanAmt.toFixed(2))}&cu=INR`;
+    upiAnchor.href = upiUrl;
+    upiAnchor.onclick = function(e) {
+        e.preventDefault();
+        copyUpiId();
+        launchExternalUrl(upiUrl, `UPI ID copied: ${UPI_ID}. Open your UPI app and pay Rs ${cleanAmt}.`);
+    };
 }
 
 function applyPromoCode() {
@@ -786,12 +813,12 @@ function applyPromoCode() {
     if (code === "FIRST60") {
         discountPercentage = 60;
         msg.style.color = "#4ade80";
-        msg.innerText = "🎉 First Order 60% OFF Applied Successfully!";
+        msg.innerText = "First Order 60% OFF Applied Successfully!";
         calculateFinalBill();
     } else {
         discountPercentage = 0;
         msg.style.color = "#f87171";
-        msg.innerText = "❌ Invalid promo code (Try FIRST60)";
+        msg.innerText = "Invalid promo code (Try FIRST60)";
         calculateFinalBill();
     }
 }
@@ -832,31 +859,31 @@ function selectPay(method) {
 
     if (method === 'cod') {
         document.getElementById('cod-box')?.classList.remove('hidden');
-        if (primaryBtn) primaryBtn.innerText = "💵 Place Cash on Delivery Order";
+        if (primaryBtn) primaryBtn.innerText = "Place Cash on Delivery Order";
     } else if (method === 'qr') {
         document.getElementById('qr-box')?.classList.remove('hidden');
-        if (primaryBtn) primaryBtn.innerText = "✅ Confirm QR Payment & Track";
+        if (primaryBtn) primaryBtn.innerText = "Confirm QR Payment & Track";
     } else if (method === 'card') {
         document.getElementById('card-box')?.classList.remove('hidden');
-        if (primaryBtn) primaryBtn.innerText = "💳 Pay Securely via Card";
+        if (primaryBtn) primaryBtn.innerText = "Pay Securely via Card";
     } else if (method === 'bank') {
         document.getElementById('bank-box')?.classList.remove('hidden');
-        if (primaryBtn) primaryBtn.innerText = "🏦 Proceed to Net Banking";
+        if (primaryBtn) primaryBtn.innerText = "Proceed to Net Banking";
     } else {
         document.getElementById('upi-box')?.classList.remove('hidden');
-        if (primaryBtn) primaryBtn.innerText = "✅ Confirm UPI Order & Track";
+        if (primaryBtn) primaryBtn.innerText = "Confirm UPI Order & Track";
     }
 }
 
 function copyUpiId() {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(UPI_ID).then(() => {
-            showToast(`📋 Copied UPI ID: ${UPI_ID}`);
+            showToast(`Copied UPI ID: ${UPI_ID}`);
         }).catch(() => {
-            showToast(`ℹ️ UPI ID: ${UPI_ID}`);
+            showToast(`UPI ID: ${UPI_ID}`);
         });
     } else {
-        showToast(`ℹ️ UPI ID: ${UPI_ID}`);
+        showToast(`UPI ID: ${UPI_ID}`);
     }
 }
 
@@ -887,7 +914,7 @@ function fillQuickArea(areaText) {
         addrBox.value = `${current}, ${areaText}`;
     }
     addrBox.focus();
-    showToast("📍 Area selected! Add House/Street details if needed.");
+    showToast("Area selected! Add House/Street details if needed.");
 }
 
 async function detectLocation() {
@@ -896,12 +923,12 @@ async function detectLocation() {
     const gpsInput = document.getElementById('gpsLink');
 
     if (!navigator.geolocation) {
-        showAddressError("⚠️ Location is not supported in this view. Select an area chip below or type your full address.");
+        showAddressError("Location is not supported in this view. Select an area chip below or type your full address.");
         if (addrBox) addrBox.focus();
         return;
     }
 
-    showAddressError("📍 Detecting your live GPS address...");
+    showAddressError("Detecting your live GPS address...");
 
     navigator.geolocation.getCurrentPosition(
         async function(position) {
@@ -929,15 +956,15 @@ async function detectLocation() {
                 const autoText = `${readableAddress} | Map: ${mapsLink}`;
                 addrBox.value = existing ? `${existing}\n${autoText}` : autoText;
             }
-            showToast("✅ Live GPS Address filled automatically!");
+            showToast("Live GPS Address filled automatically!");
         },
         function(error) {
             if (error.code === 1) {
-                showAddressError("⚠️ Location permission is blocked in preview/browser. Select a quick area below or type your full address.");
+                showAddressError("Location permission is blocked in preview/browser. Select a quick area below or type your full address.");
             } else if (error.code === 2) {
-                showAddressError("⚠️ Unable to fetch live GPS location. Select a quick area below or type your full address.");
+                showAddressError("Unable to fetch live GPS location. Select a quick area below or type your full address.");
             } else {
-                showAddressError("⚠️ GPS request timed out. Select a quick area below or type your full address.");
+                showAddressError("GPS request timed out. Select a quick area below or type your full address.");
             }
             if (addrBox) addrBox.focus();
         },
@@ -957,11 +984,11 @@ function validateForm() {
     const address = document.getElementById('custAddress').value.trim();
 
     if (name.length < 2) {
-        showAddressError("⚠️ Please enter your full name (at least 2 characters).");
+        showAddressError("Please enter your full name (at least 2 characters).");
         return false;
     }
     if (!/^[6-9][0-9]{9}$/.test(phoneClean)) {
-        showAddressError("⚠️ Please enter a valid 10-digit mobile number.");
+        showAddressError("Please enter a valid 10-digit mobile number.");
         return false;
     }
 
@@ -971,7 +998,7 @@ function validateForm() {
     const hasLongGibberishWord = words.some(w => /^[A-Za-z]{10,}$/.test(w) && !/[aeiouAEIOU]{2}/.test(w));
 
     if (address.length < 10 || words.length < 2 || !hasLetter || hasRepeatedCharOnly || hasLongGibberishWord) {
-        showAddressError("⚠️ Please enter a valid full delivery address (at least 2 words with house, street, or area details).");
+        showAddressError("Please enter a valid full delivery address (at least 2 words with house, street, or area details).");
         return false;
     }
     return true;
@@ -1002,7 +1029,7 @@ function handlePrimaryOrder() {
     saveOrderToHistory(cart, total, modeLabel, address);
 
     if (selectedPayMethod === 'upi') {
-        showToast(`✅ UPI Order placed for ₹${total}! Pay to ${UPI_ID} or use WhatsApp.`);
+        showToast(`UPI Order placed for Rs ${total}! Pay to ${UPI_ID} or use WhatsApp.`);
     }
 
     setTimeout(() => {
@@ -1028,11 +1055,11 @@ function proceedToWhatsApp() {
     }
     saveOrderToHistory(cart, total, "WhatsApp-" + modeLabel, address);
 
-    let itemsSummary = cart.map(i => `• ${i.qty}x ${i.product.name} (Size: ${i.size}) (₹${i.product.price * i.qty})`).join('%0A');
+    let itemsSummary = cart.map(i => `- ${i.qty}x ${i.product.name} (Size: ${i.size}) (Rs ${i.product.price * i.qty})`).join('%0A');
 
-    const message = `⚡ *LuxePulse 10-Min Express Order*%0A%0A*Items:*%0A${itemsSummary}%0A*Payment Mode:* ${modeLabel}%0A*Final Payable:* ₹${total}%0A%0A👤 *Customer:* ${name}%0A📞 *Phone:* ${phone}%0A📍 *Address & GPS:* ${address}`;
-    const whatsappUrl = `https://wa.me/916359442679?text=${message}`;
-    window.location.href = whatsappUrl;
+    const message = `LuxePulse 10-Min Express Order%0A%0AItems:%0A${itemsSummary}%0APayment Mode: ${modeLabel}%0AFinal Payable: Rs ${total}%0A%0ACustomer: ${name}%0APhone: ${phone}%0AAddress and GPS: ${address}`;
+    const whatsappUrl = buildWhatsAppWebUrl(message);
+    launchExternalUrl(whatsappUrl, "Opening WhatsApp...");
 }
 
 function startDeliveryTimer() {
