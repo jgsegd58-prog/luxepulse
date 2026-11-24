@@ -468,6 +468,9 @@ footer {
   outline: none;
   font-size: .82rem;
 }
+.field-error {
+  border-color: #fb7185 !important;
+}
 .detail-actions { display: flex; gap: 8px; margin-top: 18px; }
 .detail-actions button { flex: 1; }
 .secondary-btn { background: #273449; color: white; border: 1px solid var(--line); }

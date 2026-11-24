@@ -131,6 +131,16 @@ function isWebViewOrPreview() {
     !/Version\/[\d.]+.*Chrome\/[\d.]+ Mobile Safari/i.test(ua);
 }
 
+function clearFieldError(el) {
+  if (el) el.classList.remove("field-error");
+}
+
+function clearAllCheckoutErrors() {
+  ["customerName", "customerPhone", "customerAddress"].forEach(id => {
+    document.getElementById(id)?.classList.remove("field-error");
+  });
+}
+
 function saveCart() {
   writeStorage("lp_cart", cart);
   updateCounts();
@@ -492,6 +502,9 @@ function copyUpiId() {
 }
 
 function openUpiApp() {
+  const details = getCustomerDetails();
+  if (!validateCustomer(details)) return;
+
   const amount = Math.max(1, Number(getCartTotal()) || 1);
   const upiUrl = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${encodeURIComponent(amount.toFixed(2))}&cu=INR`;
 
@@ -514,6 +527,7 @@ function openCheckout() {
     return;
   }
 
+  clearAllCheckoutErrors();
   toggleCart(false);
   renderCart();
   toggleUpiPanel();
@@ -530,23 +544,34 @@ function getCustomerDetails() {
 }
 
 function validateCustomer(details) {
+  clearAllCheckoutErrors();
+
+  if (cart.length === 0) {
+    showToast("Your bag is empty");
+    return false;
+  }
+
   if (details.name.length < 2) {
-    showToast("Please enter your name");
+    const nameEl = document.getElementById("customerName");
+    nameEl?.classList.add("field-error");
+    nameEl?.focus();
+    showToast("Please enter your full name first");
     return false;
   }
 
   if (!/^[6-9]\d{9}$/.test(details.phone)) {
-    showToast("Enter a valid 10-digit mobile number");
+    const phoneEl = document.getElementById("customerPhone");
+    phoneEl?.classList.add("field-error");
+    phoneEl?.focus();
+    showToast("Enter a valid 10-digit mobile number first");
     return false;
   }
 
   if (details.address.length < 8) {
-    showToast("Please enter your complete address");
-    return false;
-  }
-
-  if (cart.length === 0) {
-    showToast("Your bag is empty");
+    const addrEl = document.getElementById("customerAddress");
+    addrEl?.classList.add("field-error");
+    addrEl?.focus();
+    showToast("Please enter your complete delivery address first");
     return false;
   }
 
@@ -567,7 +592,7 @@ function createOrderMessage(details) {
     `Name: ${details.name}`,
     `Phone: ${details.phone}`,
     `Address: ${details.address}`,
-    `Payment method: ${details.payment}`,
+    `Preferred payment: ${details.payment}`,
     `UPI ID: ${UPI_ID}`,
     "",
     "PRODUCTS:",

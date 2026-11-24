@@ -132,14 +132,14 @@
     <button type="button" class="close-btn" onclick="closeModal('checkoutModal')">×</button>
     <span class="eyebrow">ALMOST THERE</span>
     <h2>Checkout</h2>
-    <p class="muted small">Enter your details to send an order request.</p>
+    <p class="muted small">Fill your name, mobile number and delivery address first to continue.</p>
     <form id="checkoutForm">
       <label for="customerName">Full name</label>
-      <input id="customerName" required maxlength="70" placeholder="Your name">
+      <input id="customerName" required maxlength="70" placeholder="Your name" oninput="clearFieldError(this)">
       <label for="customerPhone">Mobile number</label>
-      <input id="customerPhone" required inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10-digit mobile number">
+      <input id="customerPhone" required inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10-digit mobile number" oninput="clearFieldError(this)">
       <label for="customerAddress">Delivery address</label>
-      <textarea id="customerAddress" required maxlength="300" rows="3" placeholder="House no., street, area, city, pincode"></textarea>
+      <textarea id="customerAddress" required maxlength="300" rows="3" placeholder="House no., street, area, city, pincode" oninput="clearFieldError(this)"></textarea>
       <label for="paymentMethod">Preferred payment method</label>
       <select id="paymentMethod" onchange="toggleUpiPanel()">
         <option value="UPI (6359442679@paytm)" selected>UPI (6359442679@paytm)</option>
@@ -157,7 +157,7 @@
       <div class="checkout-total"><span>Order subtotal</span><strong id="checkoutTotal">₹0</strong></div>
       <button class="primary-btn full-btn" type="submit">Send Order Request →</button>
       <button class="whatsapp-btn full-btn" type="button" onclick="sendWhatsAppOrder()">Send via WhatsApp</button>
-      <p class="small muted disclaimer">Order requests are sent directly to our team for confirmation and dispatch updates.</p>
+      <p class="small muted disclaimer">Complete your address details first before opening UPI or sending your order request.</p>
     </form>
   </div>
 </div>
