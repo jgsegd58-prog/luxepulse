@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#080b14">
-  <title>LuxePulse | Premium Store</title>
+  <title>LuxePulse | Official Store</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
 <header class="topbar">
   <a class="brand" href="#" onclick="showHome()">
     <span class="brand-mark">L</span>
-    <span>Luxe<span>Pulse</span><small>PREMIUM COLLECTION</small></span>
+    <span>Luxe<span>Pulse</span><small>OFFICIAL STORE</small></span>
   </a>
   <div class="search-wrap">
     <input id="searchInput" type="search" placeholder="Search products..." oninput="searchProducts()">
@@ -21,19 +21,20 @@
   <div class="header-actions">
     <button type="button" onclick="toggleWishlistView()" aria-label="Wishlist">♡ <span id="wishCount">0</span></button>
     <button type="button" onclick="toggleCart(true)" aria-label="Shopping bag">Bag <span id="cartCount">0</span></button>
+    <button type="button" onclick="openAdminModal()" aria-label="Admin panel">Admin</button>
   </div>
 </header>
 
 <section class="announcement">
-  <span>✦</span> Discover your style. Shop the LuxePulse collection.
+  <span>✦</span> LuxePulse Official Store — Curated quality &amp; direct checkout
 </section>
 
 <main class="container">
   <section class="hero">
     <div class="hero-copy">
-      <span class="eyebrow">THE NEW COLLECTION</span>
+      <span class="eyebrow">LUXEPULSE COLLECTION</span>
       <h1>Style that<br><em>speaks.</em></h1>
-      <p>Explore watches, fashion, footwear and accessories curated for your everyday lifestyle.</p>
+      <p>Explore watches, fashion, footwear and accessories crafted for everyday wear.</p>
       <button type="button" class="primary-btn" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">Explore Collection <span>→</span></button>
     </div>
     <div class="hero-art">
@@ -44,15 +45,15 @@
   </section>
 
   <section class="trust-strip">
-    <div><b>✦</b><span>Curated Collection</span></div>
-    <div><b>◇</b><span>Easy Ordering</span></div>
-    <div><b>↗</b><span>WhatsApp Support</span></div>
+    <div><b>✦</b><span>Curated Catalog</span></div>
+    <div><b>◇</b><span>Instant Buy Now</span></div>
+    <div><b>↗</b><span>Direct Support</span></div>
   </section>
 
   <section id="shop" class="shop-section">
     <div class="section-heading">
       <div>
-        <span class="eyebrow">FIND YOUR STYLE</span>
+        <span class="eyebrow">CATALOG</span>
         <h2>Shop Collection</h2>
       </div>
       <span class="muted" id="resultCount"></span>
@@ -72,18 +73,18 @@
   </section>
 
   <section class="about-strip">
-    <span class="eyebrow">THE LUXEPULSE PROMISE</span>
-    <h2>Good taste. Great finds.</h2>
-    <p>Browse the collection, add your favourites to your bag and send your order request directly to our team.</p>
+    <span class="eyebrow">ABOUT LUXEPULSE</span>
+    <h2>Clean design. Reliable store.</h2>
+    <p>Browse products, pick your size, use Buy Now for quick checkout or add items to your bag.</p>
   </section>
 </main>
 
 <footer>
   <a class="brand footer-brand" href="#">
     <span class="brand-mark">L</span>
-    <span>Luxe<span>Pulse</span><small>PREMIUM COLLECTION</small></span>
+    <span>Luxe<span>Pulse</span><small>OFFICIAL STORE</small></span>
   </a>
-  <p>Style made simple.</p>
+  <p>Crafted for everyday style.</p>
   <p class="copyright">© <span id="year"></span> LuxePulse. All rights reserved.</p>
 </footer>
 
@@ -130,9 +131,9 @@
 <div class="modal hidden" id="checkoutModal" onclick="outsideClose(event,'checkoutModal')">
   <div class="modal-panel checkout-panel">
     <button type="button" class="close-btn" onclick="closeModal('checkoutModal')">×</button>
-    <span class="eyebrow">ALMOST THERE</span>
+    <span class="eyebrow">QUICK CHECKOUT</span>
     <h2>Checkout</h2>
-    <p class="muted small">Fill your name, mobile number and delivery address first to continue.</p>
+    <p class="muted small">Fill your name, mobile number and delivery address to place your order.</p>
     <form id="checkoutForm">
       <label for="customerName">Full name</label>
       <input id="customerName" required maxlength="70" placeholder="Your name" oninput="clearFieldError(this)">
@@ -155,9 +156,9 @@
       </div>
 
       <div class="checkout-total"><span>Order subtotal</span><strong id="checkoutTotal">₹0</strong></div>
-      <button class="primary-btn full-btn" type="submit">Send Order Request →</button>
+      <button class="primary-btn full-btn" type="submit">Place Order Request →</button>
       <button class="whatsapp-btn full-btn" type="button" onclick="sendWhatsAppOrder()">Send via WhatsApp</button>
-      <p class="small muted disclaimer">Complete your address details first before opening UPI or sending your order request.</p>
+      <p class="small muted disclaimer">Complete your address details before opening UPI or sending your order request.</p>
     </form>
   </div>
 </div>
@@ -166,15 +167,68 @@
 <div class="modal hidden" id="wishlistModal" onclick="outsideClose(event,'wishlistModal')">
   <div class="modal-panel wishlist-panel">
     <button type="button" class="close-btn" onclick="closeModal('wishlistModal')">×</button>
-    <span class="eyebrow">SAVED FOR LATER</span>
+    <span class="eyebrow">SAVED ITEMS</span>
     <h2>Your Wishlist</h2>
     <div id="wishlistGrid" class="product-grid"></div>
     <p id="wishlistEmpty" class="empty-state">Your wishlist is empty.</p>
   </div>
 </div>
 
+<!-- Admin Panel -->
+<div class="modal hidden" id="adminModal" onclick="outsideClose(event,'adminModal')">
+  <div class="modal-panel admin-panel">
+    <button type="button" class="close-btn" onclick="closeModal('adminModal')">×</button>
+    <span class="eyebrow">STORE MANAGER</span>
+    <h2>Admin Panel</h2>
+
+    <div id="adminLockBox">
+      <p class="muted small">Enter panel password to manage cloud store products.</p>
+      <label for="adminPinInput">Panel Password</label>
+      <input id="adminPinInput" type="password" maxlength="10" placeholder="Type your panel password">
+      <button type="button" class="primary-btn full-btn" onclick="unlockAdmin()">Unlock Panel →</button>
+    </div>
+
+    <div id="adminWorkspace" class="hidden">
+      <form id="addProductForm" onsubmit="handleAddProduct(event)">
+        <label for="newProdName">Product name</label>
+        <input id="newProdName" required maxlength="80" placeholder="e.g. Royal Leather Watch">
+
+        <label for="newProdCategory">Category</label>
+        <select id="newProdCategory">
+          <option value="Watches">Watches</option>
+          <option value="Dresses">Dresses</option>
+          <option value="Shoes">Shoes</option>
+          <option value="Bags">Bags</option>
+          <option value="Caps">Caps</option>
+        </select>
+
+        <label for="newProdPrice">Selling Price (₹)</label>
+        <input id="newProdPrice" type="number" required min="1" max="1000000" placeholder="e.g. 1999">
+
+        <label for="newProdComparePrice">Old / MRP Price (₹) (Optional)</label>
+        <input id="newProdComparePrice" type="number" min="1" max="1000000" placeholder="e.g. 2999">
+
+        <label for="newProdFile">Choose Photo from Gallery</label>
+        <input id="newProdFile" type="file" accept="image/*">
+
+        <label for="newProdImage">Or Image file name / URL (Optional)</label>
+        <input id="newProdImage" placeholder="e.g. w1.jpg or https://...">
+
+        <button type="submit" class="primary-btn full-btn" id="addProdSubmitBtn">+ Add Product</button>
+      </form>
+
+      <div class="admin-list-head">
+        <h3>Manage Products (<span id="adminProdCount">0</span>)</h3>
+        <button type="button" class="secondary-btn admin-mini-btn" onclick="loadProductsFromCloud()">Refresh</button>
+      </div>
+      <div id="adminProductList" class="admin-product-list"></div>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast hidden" role="status"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
 </body>
 </html>

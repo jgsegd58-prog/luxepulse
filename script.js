@@ -1,52 +1,68 @@
 "use strict";
 
 /* ================================
-   LUXEPULSE STORE SETTINGS
+   LUXEPULSE STORE & CLOUD SETTINGS
 ================================ */
 
 const WHATSAPP_NUMBER = "916359442679";
 const UPI_ID = "6359442679@paytm";
 const MERCHANT_NAME = "LuxePulse";
+const ADMIN_PIN = "1234";
 
-const products = [
-  {id:1,name:"Classic Luxury Watch",category:"Watches",price:2499,image:"w1.jpg"},
-  {id:2,name:"Premium Chronograph Watch",category:"Watches",price:3299,image:"w2.jpg"},
-  {id:3,name:"Minimal Steel Watch",category:"Watches",price:1999,image:"w3.jpg"},
-  {id:4,name:"Elegant Gold Watch",category:"Watches",price:2799,image:"w4.jpg"},
-  {id:5,name:"Sport Edition Watch",category:"Watches",price:2299,image:"w5.jpg"},
-  {id:6,name:"Everyday Classic Watch",category:"Watches",price:1899,image:"w6.jpg"},
-  {id:7,name:"Premium Dial Watch",category:"Watches",price:3599,image:"w7.jpg"},
+// Apna Supabase Project URL aur Anon/Publishable Key yahan set hai
+const SUPABASE_URL = "https://ripucedednrgglbrozcx.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_IuOptncQzA6UzGE0MO-rQg_MBq2RLaE";
 
-  {id:8,name:"Elegant Fashion Dress",category:"Dresses",price:1499,image:"d1.jpg"},
-  {id:9,name:"Modern Casual Dress",category:"Dresses",price:1299,image:"d2.jpg"},
-  {id:10,name:"Premium Party Dress",category:"Dresses",price:2199,image:"d3.jpg"},
-  {id:11,name:"Classic Everyday Dress",category:"Dresses",price:1199,image:"d4.jpg"},
-  {id:12,name:"Stylish Summer Dress",category:"Dresses",price:1399,image:"d5.jpg"},
-  {id:13,name:"Designer Look Dress",category:"Dresses",price:1899,image:"d6.jpg"},
+const supabaseClient =
+  window.supabase &&
+  SUPABASE_URL.startsWith("http") &&
+  !SUPABASE_ANON_KEY.includes("PASTE_YOUR")
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
 
-  {id:14,name:"Urban Street Sneakers",category:"Shoes",price:1999,image:"j1.jpg"},
-  {id:15,name:"Classic Everyday Shoes",category:"Shoes",price:1599,image:"j2.jpg"},
-  {id:16,name:"Premium Casual Sneakers",category:"Shoes",price:2499,image:"j3.jpg"},
-  {id:17,name:"Sport Style Shoes",category:"Shoes",price:1799,image:"j4.jpg"},
-  {id:18,name:"Modern Fashion Shoes",category:"Shoes",price:2299,image:"j5.jpg"},
+const FALLBACK_PRODUCTS = [
+  {id:1,name:"Classic Luxury Watch",category:"Watches",price:2499,comparePrice:3499,image:"w1.jpg"},
+  {id:2,name:"Premium Chronograph Watch",category:"Watches",price:3299,comparePrice:4499,image:"w2.jpg"},
+  {id:3,name:"Minimal Steel Watch",category:"Watches",price:1999,comparePrice:2799,image:"w3.jpg"},
+  {id:4,name:"Elegant Gold Watch",category:"Watches",price:2799,comparePrice:3899,image:"w4.jpg"},
+  {id:5,name:"Sport Edition Watch",category:"Watches",price:2299,comparePrice:3199,image:"w5.jpg"},
+  {id:6,name:"Everyday Classic Watch",category:"Watches",price:1899,comparePrice:2599,image:"w6.jpg"},
+  {id:7,name:"Premium Dial Watch",category:"Watches",price:3599,comparePrice:4899,image:"w7.jpg"},
 
-  {id:19,name:"Premium Everyday Bag",category:"Bags",price:1699,image:"b1.jpg"},
-  {id:20,name:"Elegant Handbag",category:"Bags",price:2199,image:"b2.jpg"},
-  {id:21,name:"Classic Shoulder Bag",category:"Bags",price:1499,image:"b3.jpg"},
-  {id:22,name:"Modern Travel Bag",category:"Bags",price:1899,image:"b4.jpg"},
-  {id:23,name:"Stylish Mini Bag",category:"Bags",price:1299,image:"b5.jpg"},
-  {id:24,name:"Premium Fashion Bag",category:"Bags",price:2399,image:"b6.jpg"},
+  {id:8,name:"Elegant Fashion Dress",category:"Dresses",price:1499,comparePrice:2199,image:"d1.jpg"},
+  {id:9,name:"Modern Casual Dress",category:"Dresses",price:1299,comparePrice:1899,image:"d2.jpg"},
+  {id:10,name:"Premium Party Dress",category:"Dresses",price:2199,comparePrice:3199,image:"d3.jpg"},
+  {id:11,name:"Classic Everyday Dress",category:"Dresses",price:1199,comparePrice:1699,image:"d4.jpg"},
+  {id:12,name:"Stylish Summer Dress",category:"Dresses",price:1399,comparePrice:1999,image:"d5.jpg"},
+  {id:13,name:"Designer Look Dress",category:"Dresses",price:1899,comparePrice:2699,image:"d6.jpg"},
 
-  {id:25,name:"Classic Everyday Cap",category:"Caps",price:499,image:"c1.jpg"},
-  {id:26,name:"Urban Street Cap",category:"Caps",price:599,image:"c2.jpg"},
-  {id:27,name:"Premium Logo Cap",category:"Caps",price:699,image:"c3.jpg"},
-  {id:28,name:"Sport Edition Cap",category:"Caps",price:549,image:"c4.jpg"},
-  {id:29,name:"Minimal Style Cap",category:"Caps",price:449,image:"c5.jpg"},
-  {id:30,name:"Fashion Baseball Cap",category:"Caps",price:649,image:"c6.jpg"}
+  {id:14,name:"Urban Street Sneakers",category:"Shoes",price:1999,comparePrice:2899,image:"j1.jpg"},
+  {id:15,name:"Classic Everyday Shoes",category:"Shoes",price:1599,comparePrice:2299,image:"j2.jpg"},
+  {id:16,name:"Premium Casual Sneakers",category:"Shoes",price:2499,comparePrice:3499,image:"j3.jpg"},
+  {id:17,name:"Sport Style Shoes",category:"Shoes",price:1799,comparePrice:2499,image:"j4.jpg"},
+  {id:18,name:"Modern Fashion Shoes",category:"Shoes",price:2299,comparePrice:3199,image:"j5.jpg"},
+
+  {id:19,name:"Premium Everyday Bag",category:"Bags",price:1699,comparePrice:2399,image:"b1.jpg"},
+  {id:20,name:"Elegant Handbag",category:"Bags",price:2199,comparePrice:3099,image:"b2.jpg"},
+  {id:21,name:"Classic Shoulder Bag",category:"Bags",price:1499,comparePrice:2199,image:"b3.jpg"},
+  {id:22,name:"Modern Travel Bag",category:"Bags",price:1899,comparePrice:2699,image:"b4.jpg"},
+  {id:23,name:"Stylish Mini Bag",category:"Bags",price:1299,comparePrice:1899,image:"b5.jpg"},
+  {id:24,name:"Premium Fashion Bag",category:"Bags",price:2399,comparePrice:3399,image:"b6.jpg"},
+
+  {id:25,name:"Classic Everyday Cap",category:"Caps",price:499,comparePrice:799,image:"c1.jpg"},
+  {id:26,name:"Urban Street Cap",category:"Caps",price:599,comparePrice:899,image:"c2.jpg"},
+  {id:27,name:"Premium Logo Cap",category:"Caps",price:699,comparePrice:999,image:"c3.jpg"},
+  {id:28,name:"Sport Edition Cap",category:"Caps",price:549,comparePrice:849,image:"c4.jpg"},
+  {id:29,name:"Minimal Style Cap",category:"Caps",price:449,comparePrice:699,image:"c5.jpg"},
+  {id:30,name:"Fashion Baseball Cap",category:"Caps",price:649,comparePrice:949,image:"c6.jpg"}
 ];
 
+let products = [...FALLBACK_PRODUCTS];
+let isAdminUnlocked = false;
+let editingProductId = null;
+
 /* ================================
-   SAFE STORAGE
+   SAFE STORAGE (CART & WISHLIST)
 ================================ */
 
 function readStorage(key, fallback) {
@@ -81,6 +97,10 @@ if (!Array.isArray(orderRequests)) orderRequests = [];
 let currentCategory = "All";
 let currentSearch = "";
 let activeProduct = null;
+let detailCategoryItems = [];
+let detailIndex = 0;
+let isDetailZoomed = false;
+let touchStartX = 0;
 let toastTimeout;
 
 /* ================================
@@ -101,8 +121,14 @@ function money(amount) {
   return "₹" + Number(amount || 0).toLocaleString("en-IN");
 }
 
+function getComparePrice(product) {
+  const rawCompare = Number(product.comparePrice ?? product.compare_price ?? 0);
+  if (rawCompare > Number(product.price || 0)) return rawCompare;
+  return Math.round(Number(product.price || 0) * 1.35);
+}
+
 function getProduct(id) {
-  return products.find(product => product.id === Number(id));
+  return products.find(product => Number(product.id) === Number(id));
 }
 
 function showToast(message) {
@@ -152,6 +178,37 @@ function saveWishlist() {
 }
 
 /* ================================
+   CLOUD DATABASE SYNC (SUPABASE)
+================================ */
+
+async function loadProductsFromCloud() {
+  if (!supabaseClient) {
+    renderProducts();
+    renderCart();
+    renderWishlist();
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("products")
+    .select("*")
+    .order("id", { ascending: false });
+
+  if (error) {
+    console.error("Supabase load error:", error);
+    showToast("DB Error: " + (error.message || error.code || "Unknown"));
+    renderProducts();
+    return;
+  }
+
+  products = Array.isArray(data) ? data : [];
+  renderProducts();
+  renderCart();
+  renderWishlist();
+  if (isAdminUnlocked) renderAdminProducts();
+}
+
+/* ================================
    PRODUCT DISPLAY
 ================================ */
 
@@ -170,6 +227,13 @@ function getVisibleProducts() {
   });
 }
 
+function buyNowDirect(id) {
+  const product = getProduct(id);
+  if (!product) return;
+  addToCart(product.id, "Standard");
+  openCheckout();
+}
+
 function renderProducts(targetId = "productGrid", list = getVisibleProducts()) {
   const grid = document.getElementById(targetId);
   if (!grid) return;
@@ -181,7 +245,8 @@ function renderProducts(targetId = "productGrid", list = getVisibleProducts()) {
   }
 
   grid.innerHTML = list.map(product => {
-    const isWished = wishlist.includes(product.id);
+    const isWished = wishlist.includes(Number(product.id));
+    const mrp = getComparePrice(product);
 
     return `
       <article class="product-card">
@@ -205,9 +270,10 @@ function renderProducts(targetId = "productGrid", list = getVisibleProducts()) {
         <div class="product-content">
           <span class="product-category">${escapeHTML(product.category)}</span>
           <h3>${escapeHTML(product.name)}</h3>
-          <div class="product-price">${money(product.price)}</div>
+          <div class="product-price">${money(product.price)} <small>${money(mrp)}</small></div>
 
           <div class="card-actions">
+            <button type="button" class="buy-now-btn" onclick="buyNowDirect(${product.id})">Buy Now</button>
             <button type="button" class="add-btn" onclick="addToCart(${product.id})">Add to Bag</button>
             <button type="button" class="view-btn" onclick="openProduct(${product.id})">View</button>
           </div>
@@ -263,8 +329,7 @@ function showHome() {
   if (search) search.value = "";
 
   document.querySelectorAll(".category-tabs button").forEach(btn => {
-    btn.classList.toggle(btn.dataset.category === "All", btn.dataset.category === "All");
-    if (btn.dataset.category !== "All") btn.classList.remove("active");
+    btn.classList.toggle("active", btn.dataset.category === "All");
   });
 
   renderProducts();
@@ -274,25 +339,109 @@ function showHome() {
 }
 
 /* ================================
-   PRODUCT DETAILS
+   PRODUCT DETAILS (SLIDER & ZOOM)
 ================================ */
 
-function openProduct(id) {
-  const product = getProduct(id);
+function setDetailZoom(zoomed) {
+  isDetailZoomed = Boolean(zoomed);
+  const img = document.getElementById("detailImage");
+  if (!img) return;
+
+  img.style.transition = "transform 0.25s ease";
+  img.style.transformOrigin = "center center";
+  img.style.transform = isDetailZoomed ? "scale(1.85)" : "scale(1)";
+  img.style.cursor = isDetailZoomed ? "zoom-out" : "zoom-in";
+}
+
+function ensureDetailControls(wrap) {
+  if (!wrap || wrap.dataset.sliderReady) return;
+  wrap.dataset.sliderReady = "1";
+  wrap.style.position = "relative";
+  wrap.style.overflow = "hidden";
+
+  const prevBtn = document.createElement("button");
+  prevBtn.type = "button";
+  prevBtn.textContent = "‹";
+  prevBtn.setAttribute("aria-label", "Previous item in category");
+  prevBtn.style.cssText =
+    "position:absolute;left:8px;top:50%;transform:translateY(-50%);z-index:2;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.22);background:rgba(8,11,20,0.75);color:#fff;font-size:20px;line-height:1;cursor:pointer;";
+  prevBtn.onclick = e => {
+    e.stopPropagation();
+    stepDetailSlide(-1);
+  };
+
+  const nextBtn = document.createElement("button");
+  nextBtn.type = "button";
+  nextBtn.textContent = "›";
+  nextBtn.setAttribute("aria-label", "Next item in category");
+  nextBtn.style.cssText =
+    "position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:2;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.22);background:rgba(8,11,20,0.75);color:#fff;font-size:20px;line-height:1;cursor:pointer;";
+  nextBtn.onclick = e => {
+    e.stopPropagation();
+    stepDetailSlide(1);
+  };
+
+  const badge = document.createElement("span");
+  badge.id = "detailSlideIndicator";
+  badge.style.cssText =
+    "position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:2;padding:3px 10px;border-radius:999px;background:rgba(8,11,20,0.78);color:#fff;font-size:11px;letter-spacing:0.4px;pointer-events:none;";
+
+  wrap.appendChild(prevBtn);
+  wrap.appendChild(nextBtn);
+  wrap.appendChild(badge);
+
+  wrap.addEventListener("touchstart", e => {
+    if (isDetailZoomed || !e.touches?.length) return;
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+
+  wrap.addEventListener("touchend", e => {
+    if (isDetailZoomed || !e.changedTouches?.length) return;
+    const diffX = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(diffX) > 45) {
+      stepDetailSlide(diffX < 0 ? 1 : -1);
+    }
+  }, { passive: true });
+
+  const img = document.getElementById("detailImage");
+  if (img) {
+    img.addEventListener("click", e => {
+      e.stopPropagation();
+      setDetailZoom(!isDetailZoomed);
+    });
+  }
+}
+
+function stepDetailSlide(direction) {
+  if (!detailCategoryItems.length) return;
+  const total = detailCategoryItems.length;
+  detailIndex = (detailIndex + direction + total) % total;
+  renderDetailSlide();
+}
+
+function renderDetailSlide() {
+  const product = detailCategoryItems[detailIndex];
   if (!product) return;
 
   activeProduct = product;
+  setDetailZoom(false);
 
-  document.getElementById("detailImage").src = product.image;
-  document.getElementById("detailImage").alt = product.name;
+  const imgEl = document.getElementById("detailImage");
+  imgEl.src = product.image;
+  imgEl.alt = product.name;
+
   document.getElementById("detailName").textContent = product.name;
   document.getElementById("detailCategory").textContent = product.category;
   document.getElementById("detailPrice").textContent = money(product.price);
   document.getElementById("detailDescription").textContent =
-    "Explore this item from the LuxePulse collection. Select your size and proceed to checkout.";
+    "Tap photo to zoom · Swipe or use arrows to browse " + product.category + ".";
+
+  const indicator = document.getElementById("detailSlideIndicator");
+  if (indicator) {
+    indicator.textContent = `${detailIndex + 1} / ${detailCategoryItems.length} · ${product.category}`;
+  }
 
   const sizeSelect = document.getElementById("detailSize");
-
   const sizes = product.category === "Shoes"
     ? ["6", "7", "8", "9", "10"]
     : product.category === "Dresses"
@@ -313,7 +462,19 @@ function openProduct(id) {
     closeModal("productModal");
     openCheckout();
   };
+}
 
+function openProduct(id) {
+  const product = getProduct(id);
+  if (!product) return;
+
+  const sameCategory = products.filter(item => item.category === product.category);
+  detailCategoryItems = sameCategory.length ? sameCategory : [product];
+  const foundIdx = detailCategoryItems.findIndex(item => Number(item.id) === Number(product.id));
+  detailIndex = foundIdx >= 0 ? foundIdx : 0;
+
+  ensureDetailControls(document.querySelector("#productModal .detail-image-wrap"));
+  renderDetailSlide();
   openModal("productModal");
 }
 
@@ -341,7 +502,7 @@ function toggleWishlist(id) {
 }
 
 function renderWishlist() {
-  const list = products.filter(product => wishlist.includes(product.id));
+  const list = products.filter(product => wishlist.includes(Number(product.id)));
 
   renderProducts("wishlistGrid", list);
 
@@ -363,14 +524,14 @@ function addToCart(id, size = "Standard") {
   if (!product) return;
 
   const existing = cart.find(item =>
-    item.id === product.id && item.size === size
+    Number(item.id) === Number(product.id) && item.size === size
   );
 
   if (existing) {
     existing.quantity = Math.min(99, Number(existing.quantity || 1) + 1);
   } else {
     cart.push({
-      id: product.id,
+      id: Number(product.id),
       size: size,
       quantity: 1
     });
@@ -383,7 +544,7 @@ function addToCart(id, size = "Standard") {
 
 function changeQuantity(id, size, amount) {
   const item = cart.find(entry =>
-    entry.id === Number(id) && entry.size === size
+    Number(entry.id) === Number(id) && entry.size === size
   );
 
   if (!item) return;
@@ -402,7 +563,7 @@ function changeQuantity(id, size, amount) {
 
 function removeCartItem(id, size) {
   cart = cart.filter(item =>
-    !(item.id === Number(id) && item.size === size)
+    !(Number(item.id) === Number(id) && item.size === size)
   );
 
   saveCart();
@@ -660,6 +821,206 @@ function sendWhatsAppOrder() {
 }
 
 /* ================================
+   ADMIN PANEL (CLOUD DATABASE)
+================================ */
+
+function openAdminModal() {
+  const pinInput = document.getElementById("adminPinInput");
+  if (pinInput) pinInput.value = "";
+  syncAdminView();
+  openModal("adminModal");
+}
+
+function syncAdminView() {
+  const lockBox = document.getElementById("adminLockBox");
+  const workspace = document.getElementById("adminWorkspace");
+  if (!lockBox || !workspace) return;
+
+  lockBox.classList.toggle("hidden", isAdminUnlocked);
+  workspace.classList.toggle("hidden", !isAdminUnlocked);
+
+  if (isAdminUnlocked) {
+    renderAdminProducts();
+  }
+}
+
+function unlockAdmin() {
+  const entered = (document.getElementById("adminPinInput")?.value || "").trim();
+  if (entered === ADMIN_PIN) {
+    isAdminUnlocked = true;
+    syncAdminView();
+    showToast("Admin unlocked");
+  } else {
+    showToast("Wrong PIN");
+  }
+}
+
+function startEditProduct(id) {
+  if (!isAdminUnlocked) return;
+  const prod = getProduct(id);
+  if (!prod) return;
+
+  editingProductId = Number(prod.id);
+
+  document.getElementById("newProdName").value = prod.name || "";
+  document.getElementById("newProdCategory").value = prod.category || "Watches";
+  document.getElementById("newProdPrice").value = prod.price || "";
+  document.getElementById("newProdComparePrice").value = prod.comparePrice || prod.compare_price || "";
+  document.getElementById("newProdImage").value = prod.image || "";
+  const fileInput = document.getElementById("newProdFile");
+  if (fileInput) fileInput.value = "";
+
+  const btn = document.getElementById("addProdSubmitBtn");
+  if (btn) btn.textContent = "Update Product ✓";
+
+  document.getElementById("addProductForm")?.scrollIntoView({ behavior: "smooth" });
+  showToast(`Editing: ${prod.name}`);
+}
+
+async function handleAddProduct(event) {
+  event.preventDefault();
+  if (!isAdminUnlocked) return;
+
+  if (!supabaseClient) {
+    showToast("Paste Supabase URL & Key in script.js first");
+    return;
+  }
+
+  const name = (document.getElementById("newProdName")?.value || "").trim();
+  const category = document.getElementById("newProdCategory")?.value || "Watches";
+  const price = Number(document.getElementById("newProdPrice")?.value || 0);
+  const compareRaw = Number(document.getElementById("newProdComparePrice")?.value || 0);
+  const fileInput = document.getElementById("newProdFile");
+  const selectedFile = fileInput?.files?.[0] || null;
+  let image = (document.getElementById("newProdImage")?.value || "").trim();
+
+  if (!name || price <= 0 || (!selectedFile && !image)) {
+    showToast("Please fill name, price and choose a photo or URL");
+    return;
+  }
+
+  const btn = document.getElementById("addProdSubmitBtn");
+  if (btn) btn.disabled = true;
+
+  if (selectedFile) {
+    showToast("Uploading photo to cloud...");
+    const ext = (selectedFile.name.split(".").pop() || "jpg")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "") || "jpg";
+    const filePath = `prod_${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabaseClient.storage
+      .from("products")
+      .upload(filePath, selectedFile, { upsert: true });
+
+    if (uploadError) {
+      if (btn) btn.disabled = false;
+      console.error("Upload error:", uploadError);
+      showToast("Photo upload failed: " + uploadError.message);
+      return;
+    }
+
+    const { data: publicData } = supabaseClient.storage
+      .from("products")
+      .getPublicUrl(filePath);
+
+    image = publicData?.publicUrl || "";
+  }
+
+  const comparePrice = compareRaw > price ? compareRaw : Math.round(price * 1.35);
+
+  const payload = { name, category, price, image };
+  if (compareRaw > 0) payload.comparePrice = comparePrice;
+
+  let error = null;
+
+  if (editingProductId) {
+    const res = await supabaseClient
+      .from("products")
+      .update(payload)
+      .eq("id", editingProductId);
+    error = res.error;
+  } else {
+    const res = await supabaseClient
+      .from("products")
+      .insert([payload]);
+    error = res.error;
+  }
+
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = "+ Add Product";
+  }
+
+  if (error) {
+    console.error("Save error:", error);
+    showToast("Failed to save product: " + error.message);
+    return;
+  }
+
+  const wasEditing = Boolean(editingProductId);
+  editingProductId = null;
+  event.target.reset();
+  showToast(wasEditing ? "Product updated!" : "Product & photo added to cloud!");
+  await loadProductsFromCloud();
+}
+
+async function deleteAdminProduct(id) {
+  if (!isAdminUnlocked) return;
+  if (!supabaseClient) {
+    showToast("Paste Supabase URL & Key in script.js first");
+    return;
+  }
+
+  const prod = getProduct(id);
+  if (!prod) return;
+
+  if (!confirm(`Delete "${prod.name}"?`)) return;
+
+  const { error } = await supabaseClient
+    .from("products")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Delete error:", error);
+    showToast("Failed to delete product");
+    return;
+  }
+
+  if (Number(editingProductId) === Number(id)) {
+    editingProductId = null;
+    document.getElementById("addProductForm")?.reset();
+    const btn = document.getElementById("addProdSubmitBtn");
+    if (btn) btn.textContent = "+ Add Product";
+  }
+
+  showToast("Product deleted from database");
+  await loadProductsFromCloud();
+}
+
+function renderAdminProducts() {
+  const listEl = document.getElementById("adminProductList");
+  const countEl = document.getElementById("adminProdCount");
+  if (!listEl) return;
+
+  if (countEl) countEl.textContent = products.length;
+
+  listEl.innerHTML = products.map(item => `
+    <div class="admin-item">
+      <div>
+        <strong>${escapeHTML(item.name)}</strong>
+        <span>${escapeHTML(item.category)} · ${money(item.price)}</span>
+      </div>
+      <div class="admin-item-actions">
+        <button type="button" onclick="startEditProduct(${item.id})">Edit</button>
+        <button type="button" class="del-prod-btn" onclick="deleteAdminProduct(${item.id})">Delete</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+/* ================================
    MODAL HELPERS
 ================================ */
 
@@ -669,6 +1030,7 @@ function openModal(id) {
 }
 
 function closeModal(id) {
+  if (id === "productModal") setDetailZoom(false);
   document.getElementById(id)?.classList.add("hidden");
 
   const anyModalOpen = [...document.querySelectorAll(".modal")]
@@ -690,7 +1052,7 @@ function outsideClose(event, id) {
 document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("year").textContent = new Date().getFullYear();
 
-  renderProducts();
+  loadProductsFromCloud();
   renderCart();
   renderWishlist();
   toggleUpiPanel();
